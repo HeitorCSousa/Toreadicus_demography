@@ -1,2 +1,2 @@
 # Toreadicus_demography
-Repository with data and code for the analysis of the demography of Tropidurus oreadicus, an endemic lizard found in the Brazilian Cerrado savannas.
+Repository with data and code for the analysis of the demography of Tropidurus oreadicus, an endemic lizard found in the Brazilian Cerrado savannas. We investigated the effects of climate, microclimate, and ecophysiology on its demography using four-years of mark-recapture protocol. The results are published in ...
