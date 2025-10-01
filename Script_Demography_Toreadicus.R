@@ -61,36 +61,36 @@ sapply(package_vec, install.load.package)
 
 # Read trap geographical coordinates --------------------------------------
 
-arms.pts <- read.table("Pontos_Armadilhas.txt", h = T)
-arms.pts
+traps.pts <- read.table("data/Points_Traps.txt", h = T)
+traps.pts
 
-(arms.pts.PEL <- subset(arms.pts, local == "PEL"))
-coordinates(arms.pts.PEL) <- c("long", "lat")
-proj4string(arms.pts.PEL) <- CRS("+proj=longlat +datum=WGS84")
-arms.pts.PEL
-arms.pts.PEL <- st_as_sf(arms.pts.PEL)
+(traps.pts.PEL <- subset(traps.pts, local == "PEL"))
+coordinates(traps.pts.PEL) <- c("long", "lat")
+proj4string(traps.pts.PEL) <- CRS("+proj=longlat +datum=WGS84")
+traps.pts.PEL
+traps.pts.PEL <- st_as_sf(traps.pts.PEL)
 
-env.vars <- readRDS("macro_micro_clima_PEL_imp.rds")
+env.vars <- readRDS("data/macro_micro_clima_PEL_imp.rds")
 
 
 # Critical temperatures ---------------------------------------------------
 
 # Load data
-ct.pel <- read.table("CT_PEL.txt", h = T)
-ct.Toreadicus <- ct.pel[ct.pel$especie == "T_oreadicus", ]
+ct.pel <- read.table("data/CT_PEL.txt", h = T)
+ct.Toreadicus <- ct.pel[ct.pel$species == "T_oreadicus", ]
 ct.Toreadicus
 
-table(ct.Toreadicus$sexo)
+table(ct.Toreadicus$sex)
 
 
 # Locomotor performance ---------------------------------------------------
 
 # Load data
-des.loc <- read.table("desemp_loc_PEL.txt", h = T)
+des.loc <- read.table("data/desemp_loc_PEL.txt", h = T)
 
 head(des.loc)
 
-table(des.loc$especie, des.loc$PEL)
+table(des.loc$species, des.loc$PEL)
 attach(des.loc)
 
 summary(veloc)
@@ -98,61 +98,61 @@ summary(acel)
 boxplot(veloc[veloc < 20])
 
 # Aggregate data by maximum velocity achieved by each run
-dados <- aggregate(
+data <- aggregate(
   abs(veloc),
   by = list(
-    especie,
+    species,
     PEL,
     temp,
-    corrida,
-    sexo,
-    CRC
+    run,
+    sex,
+    SVL
   ),
   FUN = max,
   na.rm = T
 )
 
-head(dados)
-names(dados) <- c(
-  "especie",
+head(data)
+names(data) <- c(
+  "species",
   "PEL",
   "temp",
-  "corrida",
-  "sexo",
-  "CRC",
+  "run",
+  "sex",
+  "SVL",
   "Veloc"
 )
 
-head(dados)
+head(data)
 
-dados.ctmin <- data.frame(
-  "especie" = ct.pel$especie,
+data.ctmin <- data.frame(
+  "species" = ct.pel$species,
   "PEL" = ct.pel$pel,
   "temp" = ct.pel$Ctmin,
-  "corrida" = c(rep(NA, length(ct.pel$Ctmin))),
-  "sexo" = ct.pel$sexo,
-  "CRC" = ct.pel$crc,
+  "run" = c(rep(NA, length(ct.pel$Ctmin))),
+  "sex" = ct.pel$sex,
+  "SVL" = ct.pel$svl,
   "Veloc" = c(rep(0, length(ct.pel$Ctmin)))
 )
 
-dados.ctmax <- data.frame(
-  "especie" = ct.pel$especie,
+data.ctmax <- data.frame(
+  "species" = ct.pel$species,
   "PEL" = ct.pel$pel,
   "temp" = ct.pel$Ctmax,
-  "corrida" = c(rep(NA, length(ct.pel$Ctmin))),
-  "sexo" = ct.pel$sexo,
-  "CRC" = ct.pel$crc,
+  "run" = c(rep(NA, length(ct.pel$Ctmin))),
+  "sex" = ct.pel$sex,
+  "SVL" = ct.pel$svl,
   "Veloc" = c(rep(0, length(ct.pel$Ctmin)))
 )
 
-dados.completos <- rbind(
-  dados,
-  dados.ctmin,
-  dados.ctmax
+data.complete <- rbind(
+  data,
+  data.ctmin,
+  data.ctmax
 )
 
-head(dados.completos)
-tail(dados.completos)
+head(data.complete)
+tail(data.complete)
 
 
 # Locomotor performance curves --------------------------------------------
@@ -162,16 +162,16 @@ detach(des.loc)
 # Tropidurus oreadicus
 # Generalized additive mixed effect models
 m.Toreadicus.sprint <- gamm4(
-  Veloc ~ t2(temp) + CRC,
+  Veloc ~ t2(temp) + SVL,
   random = ~ (1 | PEL),
-  data = dados.completos[dados.completos$especie == "T_oreadicus", ]
+  data = data.complete[data.complete$species == "T_oreadicus", ]
 )
 summary(m.Toreadicus.sprint$gam)
 
 m.Toreadicus.sprint <- gamm4(
   Veloc ~ t2(temp),
   random = ~ (1 | PEL),
-  data = dados.completos[dados.completos$especie == "T_oreadicus", ]
+  data = data.complete[data.complete$species == "T_oreadicus", ]
 )
 summary(m.Toreadicus.sprint$gam)
 
@@ -203,7 +203,7 @@ preddata_tpc_Toreadicus$upper <- pred_tpc_Toreadicus$fit +
 ggplot(preddata_tpc_Toreadicus, aes(x = temp, y = predicted)) +
   geom_line() +
   geom_point(
-    data = dados.completos[dados.completos$especie == "T_oreadicus", ],
+    data = data.complete[data.complete$species == "T_oreadicus", ],
     aes(x = temp, y = Veloc),
     alpha = 0.5
   ) +
@@ -231,7 +231,7 @@ env.vars$Toreadicus_perf <- predict.gam(
 
 # Preferred temperatures --------------------------------------------------
 # Load data
-tpref_PEL <- read.table("Dados_Tpref.txt", h = T)
+tpref_PEL <- read.table("data_Tpref.txt", h = T)
 tpref_Toreadicus <- dplyr::filter(tpref_PEL, sp == "T_oreadicus")
 table(tpref_Toreadicus$pel, tpref_Toreadicus$sp)
 
@@ -306,66 +306,66 @@ env.vars.month <- subset(
 # Demographic analyses ----------------------------------------------------
 
 # Clean data
-Toreadicus.data <- readRDS("Toreadicus_PEL_imp.rds")
+Toreadicus.data <- readRDS("data/Toreadicus_PEL_imp.rds")
 head(Toreadicus.data)
 tail(Toreadicus.data)
 
 # Remove dead animals
-Toreadicus.data$morto[is.na(Toreadicus.data$morto)] <- "N"
-dados.demografia <- Toreadicus.data[Toreadicus.data$morto == "N", ]
-head(dados.demografia)
-table(dados.demografia$campanha)
-table(dados.demografia$identidade)
+Toreadicus.data$dead[is.na(Toreadicus.data$dead)] <- "N"
+data.demography <- Toreadicus.data[Toreadicus.data$dead == "N", ]
+head(data.demography)
+table(data.demography$campaign)
+table(data.demography$id)
 
 # Remove NAs
-completos <- complete.cases(dados.demografia[, c("numerodetombo", "armadilha")])
-Toreadicus.planilha <- droplevels(dados.demografia[completos, ])
-head(Toreadicus.planilha)
-str(Toreadicus.planilha)
-table(Toreadicus.planilha$campanha)
-table(Toreadicus.planilha$identidade)
+complete <- complete.cases(data.demography[, c("fieldtag", "trap")])
+Toreadicus.df <- droplevels(data.demography[complete, ])
+head(Toreadicus.df)
+str(Toreadicus.df)
+table(Toreadicus.df$campaign)
+table(Toreadicus.df$id)
 
 ## openCR ------------------------------------------------------------------
 
 # Load trap locations
-pts.arms <- read.table("Pontos_armadilhas.txt", h = T)
-pts.arms.PEL <- pts.arms[pts.arms$local == "PEL", ]
+pts.traps <- read.table("Points_Traps.txt", h = T)
+pts.traps.PEL <- pts.traps[pts.traps$local == "PEL", ]
 
-(arms.pts.PEL <- subset(arms.pts, local == "PEL"))
-coordinates(arms.pts.PEL) <- c("long", "lat")
-proj4string(arms.pts.PEL) <- CRS("+proj=longlat +datum=WGS84")
-arms.pts.PEL.utm <- spTransform(arms.pts.PEL, CRS = CRS("+init=epsg:32722"))
-pts.arms.PEL$X <- coordinates(arms.pts.PEL.utm)[, 1]
-pts.arms.PEL$Y <- coordinates(arms.pts.PEL.utm)[, 2]
+(traps.pts.PEL <- subset(traps.pts, local == "PEL"))
+coordinates(traps.pts.PEL) <- c("long", "lat")
+proj4string(traps.pts.PEL) <- CRS("+proj=longlat +datum=WGS84")
+traps.pts.PEL.utm <- spTransform(traps.pts.PEL, CRS = CRS("+init=epsg:32722"))
+pts.traps.PEL$X <- coordinates(traps.pts.PEL.utm)[, 1]
+pts.traps.PEL$Y <- coordinates(traps.pts.PEL.utm)[, 2]
 
 
-Toreadicus.planilha.XY <- merge(Toreadicus.planilha, pts.arms.PEL, all.x = T)
-head(Toreadicus.planilha.XY)
+Toreadicus.df.XY <- merge(Toreadicus.df, pts.traps.PEL, all.x = T)
+head(Toreadicus.df.XY)
 
 capts <- data.frame(
-  Session = Toreadicus.planilha.XY$local,
-  ID = Toreadicus.planilha.XY$numerodetombo,
-  occasion = Toreadicus.planilha.XY$campanha,
-  X = Toreadicus.planilha.XY$X,
-  Y = Toreadicus.planilha.XY$Y,
-  sexo = as.factor(Toreadicus.planilha.XY$sexo),
-  year = as.factor(Toreadicus.planilha.XY$year)
+  Session = Toreadicus.df.XY$local,
+  ID = Toreadicus.df.XY$fieldtag,
+  occasion = Toreadicus.df.XY$campaign,
+  X = Toreadicus.df.XY$X,
+  Y = Toreadicus.df.XY$Y,
+  sex = as.factor(Toreadicus.df.XY$sex),
+  year = as.factor(Toreadicus.df.XY$year)
 )
 
 summary(capts)
 
 # Immature individuals (sex unknown)
-capts$sexo[capts$sexo == "I"] <- NA
+capts$sex[capts$sex == "I"] <- NA
 
 # remove NAs
-completos <- complete.cases(capts[, c("ID", "X", "Y", "sexo")])
-capts <- droplevels(capts[completos, ])
+complete <- complete.cases(capts[, c("ID", "X", "Y", "sex")])
+capts <- droplevels(capts[complete, ])
 summary(capts)
 
 traps.xy <- data.frame(
-  trapID = pts.arms.PEL$local,
-  x = pts.arms.PEL$X,
-  y = pts.arms.PEL$Y
+  trapID = pts.traps.PEL$local,
+  x = pts.traps.PEL$X,
+  y = pts.traps.PEL$Y
 )
 traps.xy <- read.traps(data = traps.xy[, -1], detector = "multi")
 
@@ -406,7 +406,7 @@ summary(cjs.t)
 
 cjs.full <- openCR.fit(
   Toreadicus.CHxy,
-  model = list(phi ~ -1 + sexo * year, p ~ -1 + sexo * year),
+  model = list(phi ~ -1 + sex * year, p ~ -1 + sex * year),
   method = "BFGS",
   details = list(
     control = list(
@@ -421,7 +421,7 @@ summary(cjs.full)
 
 cjs.fulladd <- openCR.fit(
   Toreadicus.CHxy,
-  model = list(phi ~ -1 + sexo + year, p ~ -1 + sexo + year),
+  model = list(phi ~ -1 + sex + year, p ~ -1 + sex + year),
   method = "BFGS",
   details = list(
     control = list(
@@ -436,7 +436,7 @@ summary(cjs.fulladd)
 
 cjs.psextphisex <- openCR.fit(
   Toreadicus.CHxy,
-  model = list(phi ~ -1 + sexo, p ~ -1 + sexo + year),
+  model = list(phi ~ -1 + sex, p ~ -1 + sex + year),
   method = "BFGS",
   details = list(
     control = list(
@@ -451,7 +451,7 @@ summary(cjs.psextphisex)
 
 cjs.psexphisext <- openCR.fit(
   Toreadicus.CHxy,
-  model = list(phi ~ -1 + sexo + year, p ~ -1 + sexo),
+  model = list(phi ~ -1 + sex + year, p ~ -1 + sex),
   method = "BFGS",
   details = list(
     control = list(
@@ -466,7 +466,7 @@ summary(cjs.psexphisext)
 
 cjs.ptphisext <- openCR.fit(
   Toreadicus.CHxy,
-  model = list(phi ~ -1 + sexo + year, p ~ -1 + year),
+  model = list(phi ~ -1 + sex + year, p ~ -1 + year),
   method = "BFGS",
   details = list(
     control = list(
@@ -481,7 +481,7 @@ summary(cjs.ptphisext)
 
 cjs.psextphit <- openCR.fit(
   Toreadicus.CHxy,
-  model = list(phi ~ -1 + year, p ~ -1 + sexo + year),
+  model = list(phi ~ -1 + year, p ~ -1 + sex + year),
   method = "BFGS",
   details = list(
     control = list(
@@ -496,7 +496,7 @@ summary(cjs.psextphit)
 
 cjs.psexphit <- openCR.fit(
   Toreadicus.CHxy,
-  model = list(phi ~ -1 + year, p ~ -1 + sexo),
+  model = list(phi ~ -1 + year, p ~ -1 + sex),
   method = "BFGS",
   details = list(
     control = list(
@@ -511,7 +511,7 @@ summary(cjs.psexphit)
 
 cjs.ptphisex <- openCR.fit(
   Toreadicus.CHxy,
-  model = list(phi ~ -1 + sexo, p ~ -1 + year),
+  model = list(phi ~ -1 + sex, p ~ -1 + year),
   method = "BFGS",
   details = list(
     control = list(
@@ -527,7 +527,7 @@ summary(cjs.ptphisex)
 
 cjs.sex <- openCR.fit(
   Toreadicus.CHxy,
-  model = list(phi ~ -1 + sexo, p ~ -1 + sexo),
+  model = list(phi ~ -1 + sex, p ~ -1 + sex),
   method = "BFGS",
   details = list(
     control = list(
@@ -573,7 +573,7 @@ pred.fullcjs.df <- modelAverage(
     cjs.fulladd
   ),
   newdata = expand.grid(
-    sexo = as.factor(c("F", "M")),
+    sex = as.factor(c("F", "M")),
     year = as.factor(c(2018:2021))
   )
 )
@@ -585,7 +585,7 @@ pred.fullcjs.df <- list(
 
 pred.fullcjs.df$p <- cbind(
   expand.grid(
-    sexo = as.factor(c("F", "M")),
+    sex = as.factor(c("F", "M")),
     year = as.factor(c(2018:2021))
   ),
   pred.fullcjs.df$p
@@ -593,19 +593,19 @@ pred.fullcjs.df$p <- cbind(
 
 pred.fullcjs.df$phi <- cbind(
   expand.grid(
-    sexo = as.factor(c("F", "M")),
+    sex = as.factor(c("F", "M")),
     year = as.factor(c(2018:2021))
   ),
   pred.fullcjs.df$phi
 )
 
 
-ggplot(pred.fullcjs.df$p, aes(x = year:sexo, y = estimate, color = sexo)) +
+ggplot(pred.fullcjs.df$p, aes(x = year:sex, y = estimate, color = sex)) +
   geom_pointrange(aes(ymin = lcl, ymax = ucl)) +
   labs(x = "", y = "Capture") +
   theme_classic()
 
-ggplot(pred.fullcjs.df$phi, aes(x = year:sexo, y = estimate, color = sexo)) +
+ggplot(pred.fullcjs.df$phi, aes(x = year:sex, y = estimate, color = sex)) +
   geom_pointrange(aes(ymin = lcl, ymax = ucl)) +
   labs(x = "", y = "Survival") +
   theme_classic()
@@ -615,44 +615,44 @@ ggplot(pred.fullcjs.df$phi, aes(x = year:sexo, y = estimate, color = sexo)) +
 # Use monthly data
 
 # Filter variables of interest
-table1 <- Toreadicus.planilha.XY[
-  Toreadicus.planilha.XY$recaptura != "(s)",
+table1 <- Toreadicus.df.XY[
+  Toreadicus.df.XY$recapture != "(s)",
   c(
-    "numerodetombo",
-    "campanha",
-    "sexo",
-    "crc",
-    "massa",
-    "recaptura",
-    "armadilha"
+    "fieldtag",
+    "campaign",
+    "sex",
+    "svl",
+    "mass",
+    "recapture",
+    "trap"
   )
 ]
 str(table1)
 
 
 # Identify captures without ID
-table2 <- complete.cases(table1[, c("numerodetombo")])
+table2 <- complete.cases(table1[, c("fieldtag")])
 
 # Remove captures without ID and SVL
 table3 <- table1[table2, ]
 
 # Order the data by ID and campaign (month)
-table4 <- table3[order(table3$numerodetombo, table3$campanha), ]
+table4 <- table3[order(table3$fieldtag, table3$campaign), ]
 str(table4)
 summary(table4)
 
 # Convert ID from factor to character
 table5 <- droplevels(table4)
-table5$numerodetombo <- as.character(table5$numerodetombo)
-table5$armadilha <- as.character(table5$armadilha)
+table5$fieldtag <- as.character(table5$fieldtag)
+table5$trap <- as.character(table5$trap)
 str(table5)
 
 
 # Calculate recapture frequencies
-recap.table <- data.frame(table(table5$numerodetombo))
-names(recap.table) <- c("identidade", "capturas")
+recap.table <- data.frame(table(table5$fieldtag))
+names(recap.table) <- c("id", "captures")
 recap.table
-table(recap.table$capturas)
+table(recap.table$captures)
 218 +
   (2 * 69) +
   (3 * 37) +
@@ -673,17 +673,17 @@ Age <- c(rep(NA, nrow(table5)))
 Age
 
 datA <- data.frame(
-  table5$campanha,
-  table5$sexo,
-  table5$numerodetombo,
-  table5$crc,
-  table5$massa,
+  table5$campaign,
+  table5$sex,
+  table5$fieldtag,
+  table5$svl,
+  table5$mass,
   Age,
-  table5$armadilha
+  table5$trap
 )
-names(datA) <- c("Year", "Sex", "TrueID", "CRC", "Massa", "Age", "Armadilha")
+names(datA) <- c("Year", "Sex", "TrueID", "SVL", "Massa", "Age", "Trap")
 datA$Year <- datA$Year
-datA$Age[datA$CRC <= 35] <- 0
+datA$Age[datA$SVL <= 35] <- 0
 head(datA)
 tail(datA)
 str(datA)
@@ -699,10 +699,10 @@ for (i in 1:nrow(datA)) {
 table(del)
 
 
-arm <- as.integer(datA$Armadilha)
+trap <- as.integer(datA$Trap)
 ind <- as.numeric(factor(datA$TrueID))
 (time <- datA$Year)
-y <- datA$CRC
+y <- datA$SVL
 m <- nrow(datA) ### number of observations
 
 age <- c() ## age at first capture
@@ -749,7 +749,7 @@ eh <- cast(
   datA,
   TrueID ~ Year,
   fun.aggregate = function(x) as.numeric(length(x) > 0),
-  value = "CRC"
+  value = "SVL"
 )
 eh <- eh[, 2:ncol(eh)]
 eh.all <- seq(min(datA$Year), max(datA$Year)) # fill all the years ignored
@@ -811,11 +811,11 @@ males <- tapply(sex.months[, 2], sex.months[, 3], sum)
 (sex.year <- rbind(females, males))
 chisq.test(sex.year, simulate.p.value = T)
 
-pred.fullcjs.df$p$estimate[pred.fullcjs.df$p$sexo == "F"]
+pred.fullcjs.df$p$estimate[pred.fullcjs.df$p$sex == "F"]
 
 (sex.year.cjs <- rbind(
-  round(females / pred.fullcjs.df$p$estimate[pred.fullcjs.df$p$sexo == "F"]),
-  round(males / pred.fullcjs.df$p$estimate[pred.fullcjs.df$p$sexo == "M"])
+  round(females / pred.fullcjs.df$p$estimate[pred.fullcjs.df$p$sex == "F"]),
+  round(males / pred.fullcjs.df$p$estimate[pred.fullcjs.df$p$sex == "M"])
 ))
 chisq.test(sex.year.cjs, simulate.p.value = T)
 chisq.test(sex.year.cjs[, 1], simulate.p.value = T)
@@ -914,8 +914,8 @@ bugs.data <- list(
   y = eh,
   z = known.states.cjs(eh),
   time = time,
-  amb.JS = as.matrix(scale(time.env.cov)),
-  arm = arm
+  env.JS = as.matrix(scale(time.env.cov)),
+  trap = trap
 )
 
 saveRDS(bugs.data, "Toreadicus_data.rds")
@@ -990,7 +990,7 @@ phiJS[n.occasions]<-0
 #logit constraint for survival probability(phiJS)
 for(t in 1:(n.occasions-1)){
 phiJS[t]<-1/(1+exp(-logit.phiJS[t]))
-logit.phiJS[t]<- alpha.phiJS + eps.phiJS[t] + inprod(amb.JS[t,],betaphiJS)
+logit.phiJS[t]<- alpha.phiJS + eps.phiJS[t] + inprod(env.JS[t,],betaphiJS)
 eps.phiJS[t]~dnorm(0,tau.phiJS)
 }
 
@@ -1013,7 +1013,7 @@ tauphibJS~dgamma(1,0.001)
 
 for(t in 1:(n.occasions-1)){
 f[t]<-exp(log.f[t])
-log.f[t]<- alpha.f + eps.f[t]+ inprod(amb.JS[t,],betaf)
+log.f[t]<- alpha.f + eps.f[t]+ inprod(env.JS[t,],betaf)
 eps.f[t]~dnorm(0,tau.f)
 }
 
@@ -1036,7 +1036,7 @@ taufb~dgamma(1,0.001)
 for(t in 1:n.occasions){
 #logit constraint for detectability (pJS)
 pJS[t]<-1/(1+exp(-logit.pJS[t]))
-logit.pJS[t]<- alpha.pJS + eps.p[t]+ inprod(amb.JS[t,],betapJS)
+logit.pJS[t]<- alpha.pJS + eps.p[t]+ inprod(env.JS[t,],betapJS)
 eps.p[t]~dnorm(0,tau.pJS)
 
 #no constraints formula
@@ -1226,7 +1226,7 @@ nc <- 3
 # write.table(pradel.Toreadicus.df,"results_pradel_Toreadicus.txt",sep="\t")
 
 # Please, load the results below
-pradel.Toreadicus <- readRDS("results_pradel_Toreadicus.rds")
+pradel.Toreadicus <- readRDS("output/results_pradel_Toreadicus.rds")
 pradel.Toreadicus.df <- pradel.Toreadicus$summary
 View(pradel.Toreadicus.df)
 
@@ -1752,7 +1752,7 @@ ggmcmc(S)
 Toreadicus.data <- readRDS("Toreadicus_PEL_imp.rds")
 
 # Total captures and recaptures
-length(Toreadicus.data$crc)
+length(Toreadicus.data$svl)
 
 
 # SVL temporal variation plots
@@ -1787,10 +1787,10 @@ length(Toreadicus.data$crc)
   "Nov"
 ))
 
-head(dados)
+head(data)
 
 plot(
-  crc ~ campanha,
+  svl ~ campaign,
   data = Toreadicus.data,
   ylab = "Snout-vent length (mm)",
   col = rgb(0, 0, 0, .25),
@@ -1806,7 +1806,7 @@ axis(2)
 abline(h = 50, lty = 3)
 
 boxplot(
-  crc ~ month,
+  svl ~ month,
   data = Toreadicus.data,
   axes = F,
   ylab = "Snout-vent length (mm)",
@@ -1835,12 +1835,12 @@ axis(2)
 abline(h = 50, lty = 3)
 
 # SVL between sexes
-head(dados)
-boxplot(crc ~ sexo, data = Toreadicus.data, ylab = "Snout-vent length (mm)")
+head(data)
+boxplot(svl ~ sex, data = Toreadicus.data, ylab = "Snout-vent length (mm)")
 
 
 cap.month <- function(x4, recap) {
-  cap <- subset(x4, recaptura == recap)
+  cap <- subset(x4, recapture == recap)
   cap.month <- as.data.frame(table(cap$month.n))
   names(cap.month) <- c("month", "captures")
 
@@ -1851,7 +1851,7 @@ cap.month <- function(x4, recap) {
   cap.month.1$captures[is.na(cap.month.1$captures)] <- 0
   cap.month.1
 
-  recap <- subset(x4, recaptura != recap)
+  recap <- subset(x4, recapture != recap)
   recap.month <- as.data.frame(table(recap$month.n))
   names(recap.month) <- c("month", "recaptures")
 
@@ -1885,12 +1885,12 @@ barplot(
 )
 
 arms.caps <- function(x4, narms) {
-  tab.caps <- as.data.frame(table(x4$armadilha))
-  names(tab.caps) <- c("armadilha", "capturas") # Rename columns
+  tab.caps <- as.data.frame(table(x4$trap))
+  names(tab.caps) <- c("trap", "captures") # Rename columns
   armadilha.n <- data.frame(1:narms)
-  names(armadilha.n) <- c("armadilha")
+  names(armadilha.n) <- c("trap")
   arms.caps.sp <- merge(armadilha.n, tab.caps, all.x = T)
-  arms.caps.sp$capturas[is.na(arms.caps.sp$capturas)] <- 0
+  arms.caps.sp$captures[is.na(arms.caps.sp$captures)] <- 0
   print(arms.caps.sp)
 }
 
@@ -1898,7 +1898,7 @@ arms.caps.To.PEL <- arms.caps(Toreadicus.data, narms = 25)
 summary(arms.caps.To.PEL)
 
 barplot(
-  arms.caps.To.PEL$capturas,
+  arms.caps.To.PEL$captures,
   names.arg = 1:25,
   col = c(
     rep("#2c7bb6", 6),
@@ -1923,19 +1923,19 @@ text(27, 68, "Cerrado sensu stricto")
 
 ## INLA------------------------------------------------------------------------
 # Rectify the camapaign number of one individual
-Toreadicus.planilha.XY$campanha[Toreadicus.planilha.XY$sampling_day > 6] <- 43
+Toreadicus.df.XY$campaign[Toreadicus.df.XY$sampling_day > 6] <- 43
 
-Toreadicus.planilha.XY <- Toreadicus.planilha.XY %>%
-  group_by(campanha) %>%
-  mutate(sampling_day = dense_rank(data)) %>% # Rank the dates within each month
+Toreadicus.df.XY <- Toreadicus.df.XY %>%
+  group_by(campaign) %>%
+  mutate(sampling_day = dense_rank(date)) %>% # Rank the dates within each month
   ungroup()
 
-summary(Toreadicus.planilha.XY$sampling_day)
+summary(Toreadicus.df.XY$sampling_day)
 
 Toreadicus.captures.day <- as.data.frame(table(
-  Toreadicus.planilha.XY$armadilha,
-  Toreadicus.planilha.XY$campanha,
-  Toreadicus.planilha.XY$sampling_day
+  Toreadicus.df.XY$trap,
+  Toreadicus.df.XY$campaign,
+  Toreadicus.df.XY$sampling_day
 ))
 names(Toreadicus.captures.day) <- c("trap", "t", "sampling_day", "freq")
 
@@ -1959,8 +1959,8 @@ Toreadicus.captures.day.env <- left_join(
 
 summary(Toreadicus.captures.day.env)
 
-pts.arms.PEL$x_km <- pts.arms.PEL$x / 1000
-pts.arms.PEL$y_km <- pts.arms.PEL$y / 1000
+pts.traps.PEL$x_km <- pts.traps.PEL$x / 1000
+pts.traps.PEL$y_km <- pts.traps.PEL$y / 1000
 
 Toreadicus.captures.day.env$t <- as.integer(Toreadicus.captures.day.env$t)
 Toreadicus.captures.day.env$x_km <- Toreadicus.captures.day.env$x / 1000
@@ -2116,18 +2116,18 @@ plot(
 )
 
 # Create SPDE mesh for spatial effects (traps along a transect)
-coords <- cbind(pts.arms.PEL$x, pts.arms.PEL$y)
-bnd <- inla.nonconvex.hull(arms.pts.PEL.utm, convex = 100)
+coords <- cbind(pts.traps.PEL$x, pts.traps.PEL$y)
+bnd <- inla.nonconvex.hull(traps.pts.PEL.utm, convex = 100)
 mesh.inla <- inla.mesh.2d(
   boundary = bnd,
-  arms.pts.PEL.utm,
+  traps.pts.PEL.utm,
   max.edge = c(30, 100),
   cutoff = 30
 )
 
 par(mfrow = c(1, 1))
 plot(mesh.inla)
-points(arms.pts.PEL.utm, col = "red", pch = 19)
+points(traps.pts.PEL.utm, col = "red", pch = 19)
 
 spde <- inla.spde2.pcmatern(
   mesh = mesh.inla,
@@ -4297,14 +4297,14 @@ library(tidyterra)
 library(spData)
 
 # Read and plot points coordinates
-arms.pts <- read.table("Pontos_Armadilhas.txt", h = T)
-arms.pts
+traps.pts <- read.table("Points_Traps.txt", h = T)
+traps.pts
 
-(arms.pts.PEL <- subset(arms.pts, local == "PEL"))
-coordinates(arms.pts.PEL) <- c("long", "lat")
-proj4string(arms.pts.PEL) <- CRS("+proj=longlat +datum=WGS84")
-arms.pts.PEL
-arms.pts.PEL <- st_as_sf(arms.pts.PEL)
+(traps.pts.PEL <- subset(traps.pts, local == "PEL"))
+coordinates(traps.pts.PEL) <- c("long", "lat")
+proj4string(traps.pts.PEL) <- CRS("+proj=longlat +datum=WGS84")
+traps.pts.PEL
+traps.pts.PEL <- st_as_sf(traps.pts.PEL)
 
 # Read biomes
 biomes <- read_biomes()
@@ -4362,7 +4362,7 @@ inset.cerrado <- ggplot() +
 
 inset.pel <- ggplot() +
   geom_sf(data = PEL, color = "forestgreen", fill = NA, linewidth = 1.25) +
-  geom_sf(data = arms.pts.PEL, size = 0.8, color = "red") +
+  geom_sf(data = traps.pts.PEL, size = 0.8, color = "red") +
   geom_rect(
     aes(xmin = -48.215, xmax = -48.200, ymin = -10.152, ymax = -10.140),
     color = "red",
@@ -4381,7 +4381,7 @@ inset.pel <- ggplot() +
   labs(x = "Longitude", y = "Latitude")
 
 # dowload tiles and compose raster (SpatRaster)
-bbox.arms <- st_bbox(arms.pts.PEL)
+bbox.arms <- st_bbox(traps.pts.PEL)
 bbox.arms[1:4] <- c(-48.215, -10.150, -48.200, -10.140)
 
 imagery <- get_tiles(
@@ -4391,14 +4391,14 @@ imagery <- get_tiles(
   zoom = 16
 )
 plot(imagery)
-plot(st_geometry(arms.pts.PEL), col = "red", pch = 21, add = T)
+plot(st_geometry(traps.pts.PEL), col = "red", pch = 21, add = T)
 
 map.arms.pel <- ggplot() +
   geom_spatraster_rgb(data = imagery, interpolate = F) +
-  geom_sf(data = arms.pts.PEL, size = 2.5, color = "red") +
+  geom_sf(data = traps.pts.PEL, size = 2.5, color = "red") +
   geom_sf_text(
-    data = arms.pts.PEL,
-    aes(label = armadilha),
+    data = traps.pts.PEL,
+    aes(label = trap),
     nudge_x = 0.0003,
     nudge_y = 0.0003,
     size = 2.5,

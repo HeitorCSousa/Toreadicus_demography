@@ -6,7 +6,7 @@
 
 **DOI:** [INSERT DOI HERE ONCE AVAILABLE]
 
-**Contact:** Heitor Campos de Sousa (heitor.sousa@uft.edu.br)
+**Contact:** Heitor Campos de Sousa (heitorsousa.bio@gmail.com or heitor.sousa@uft.edu.br)
 
 ---
 

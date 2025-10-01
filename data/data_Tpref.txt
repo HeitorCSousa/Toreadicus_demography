@@ -1,4 +1,4 @@
-temp	sp	pel	data
+temp	sp	pel	date
 37.14	T_oreadicus	1398	03/08/2021
 35.15	T_oreadicus	1398	03/08/2021
 34.21	T_oreadicus	1398	03/08/2021

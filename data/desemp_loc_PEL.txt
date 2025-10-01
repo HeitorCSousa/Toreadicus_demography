@@ -1,4 +1,4 @@
-especie	corrida	temp	PEL	veloc	acel	sexo	CRC	CC	BC
+species	run	temp	PEL	veloc	acel	sex	SVL	TL	TB
 T_oreadicus	1	26	1404	NA	NA	I	40	49	42
 T_oreadicus	1	26	1404	2.02E+00	NA	I	40	49	42
 T_oreadicus	1	26	1404	1.62E+00	6.64E+00	I	40	49	42

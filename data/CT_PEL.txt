@@ -1,4 +1,4 @@
-especie	pel	sexo	crc	Ctmin	Ctmax	data
+species	pel	sex	svl	Ctmin	Ctmax	date
 T_oreadicus	1404	F	46	15.4	41.6	14/10/2020
 T_oreadicus	1418	F	63	18	40	08/07/2020
 T_oreadicus	1507	M	74	14.4	40.6	15/10/2020

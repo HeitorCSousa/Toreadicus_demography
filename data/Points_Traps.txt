@@ -1,4 +1,4 @@
-parcela	armadilha	lat	long	local
+plot	trap	lat	long	local
 T	1	-10.148120	-48.204961	PEL
 T	2	-10.147986	-48.205284	PEL
 T	3	-10.147865	-48.205505	PEL
