@@ -86,12 +86,12 @@ table(ct.Toreadicus$sex)
 # Locomotor performance ---------------------------------------------------
 
 # Load data
-des.loc <- read.table("data/desemp_loc_PEL.txt", h = T)
+perf.loc <- read.table("data/perf_loc_PEL.txt", h = T)
 
-head(des.loc)
+head(perf.loc)
 
-table(des.loc$species, des.loc$PEL)
-attach(des.loc)
+table(perf.loc$species, perf.loc$PEL)
+attach(perf.loc)
 
 summary(veloc)
 summary(acel)
@@ -157,7 +157,7 @@ tail(data.complete)
 
 # Locomotor performance curves --------------------------------------------
 
-detach(des.loc)
+detach(perf.loc)
 
 # Tropidurus oreadicus
 # Generalized additive mixed effect models
@@ -231,7 +231,7 @@ env.vars$Toreadicus_perf <- predict.gam(
 
 # Preferred temperatures --------------------------------------------------
 # Load data
-tpref_PEL <- read.table("data_Tpref.txt", h = T)
+tpref_PEL <- read.table("data/data_Tpref.txt", h = T)
 tpref_Toreadicus <- dplyr::filter(tpref_PEL, sp == "T_oreadicus")
 table(tpref_Toreadicus$pel, tpref_Toreadicus$sp)
 
@@ -328,7 +328,7 @@ table(Toreadicus.df$id)
 ## openCR ------------------------------------------------------------------
 
 # Load trap locations
-pts.traps <- read.table("Points_Traps.txt", h = T)
+pts.traps <- read.table("data/Points_Traps.txt", h = T)
 pts.traps.PEL <- pts.traps[pts.traps$local == "PEL", ]
 
 (traps.pts.PEL <- subset(traps.pts, local == "PEL"))
@@ -681,7 +681,7 @@ datA <- data.frame(
   Age,
   table5$trap
 )
-names(datA) <- c("Year", "Sex", "TrueID", "SVL", "Massa", "Age", "Trap")
+names(datA) <- c("Year", "Sex", "TrueID", "SVL", "Mass", "Age", "Trap")
 datA$Year <- datA$Year
 datA$Age[datA$SVL <= 35] <- 0
 head(datA)
@@ -918,7 +918,7 @@ bugs.data <- list(
   trap = trap
 )
 
-saveRDS(bugs.data, "Toreadicus_data.rds")
+saveRDS(bugs.data, "data/Toreadicus_data.rds")
 
 # Initial values
 inits <- function() {
@@ -1280,7 +1280,7 @@ rect2 <- data.frame(xmin = 9, xmax = 15, ymin = -Inf, ymax = Inf)
 rect3 <- data.frame(xmin = 21, xmax = 27, ymin = -Inf, ymax = Inf)
 rect4 <- data.frame(xmin = 32, xmax = 39, ymin = -Inf, ymax = Inf)
 rect5 <- data.frame(xmin = 45, xmax = 46, ymin = -Inf, ymax = Inf)
-meses <- month(
+months <- month(
   seq(as.POSIXlt("2018-02-01"), as.POSIXlt("2021-11-30"), "month"),
   label = T,
   abbr = T
@@ -1325,7 +1325,7 @@ ggplot(PJS.df[PJS.df$param == "phi", ], aes(time)) +
   geom_ribbon(aes(ymin = low.25, ymax = hi75), alpha = .8) +
   scale_x_continuous(
     breaks = c(1:45),
-    labels = meses[-46],
+    labels = months[-46],
     expand = c(0, 0.6)
   ) +
   labs(x = NULL, y = "Survival") +
@@ -1369,7 +1369,7 @@ ggplot(PJS.df[PJS.df$param == "f", ], aes(time, mean)) +
   geom_line(aes(y = mean), size = 1.5) +
   scale_x_continuous(
     breaks = c(1:45),
-    labels = meses[-46],
+    labels = months[-46],
     expand = c(0, 0.6)
   ) +
   geom_ribbon(aes(ymin = low2.5, ymax = hi97.5), alpha = .4) +
@@ -1414,7 +1414,7 @@ ggplot(PJS.df[PJS.df$param == "p", ], aes(time, mean)) +
     inherit.aes = F
   ) +
   geom_line(aes(y = mean), size = 1.5) +
-  scale_x_continuous(breaks = c(1:46), labels = meses, expand = c(0, 0.6)) +
+  scale_x_continuous(breaks = c(1:46), labels = months, expand = c(0, 0.6)) +
   geom_ribbon(aes(ymin = low2.5, ymax = hi97.5), alpha = .4) +
   geom_ribbon(aes(ymin = low.25, ymax = hi75), alpha = .8) +
   labs(x = NULL, y = "Capture") +
@@ -1459,7 +1459,7 @@ ggplot(PJS.df[PJS.df$param == "rho", ], aes(time, log(mean))) +
   geom_line(aes(y = log(mean)), size = 1.5) +
   scale_x_continuous(
     breaks = c(1:45),
-    labels = meses[-46],
+    labels = months[-46],
     expand = c(0, 0.6)
   ) +
   geom_ribbon(aes(ymin = log(low2.5), ymax = log(hi97.5)), alpha = .4) +
@@ -1504,7 +1504,7 @@ ggplot(time.env.cov, aes(x = 1:46, y = Toreadicus_perfJS)) +
     inherit.aes = F
   ) +
   geom_line(aes(y = Toreadicus_perfJS), size = 1.5) +
-  scale_x_continuous(breaks = c(1:46), labels = meses, expand = c(0, 0.6)) +
+  scale_x_continuous(breaks = c(1:46), labels = months, expand = c(0, 0.6)) +
   labs(x = NULL, y = "Locomotor performance") +
   theme(
     plot.margin = unit(c(0, 0, 2, 0), "lines"),
@@ -1718,7 +1718,7 @@ ggplot(sens.df, aes(time, sens.phi)) +
   geom_line(aes(y = sens.f), size = 1.5, col = "blue") +
   scale_x_continuous(
     breaks = c(1:45),
-    labels = meses[-46],
+    labels = months[-46],
     expand = c(0, 0.6)
   ) +
   geom_ribbon(
@@ -1749,7 +1749,7 @@ ggmcmc(S)
 # SVL analyses ------------------------------------------------------------
 
 # Load data
-Toreadicus.data <- readRDS("Toreadicus_PEL_imp.rds")
+Toreadicus.data <- readRDS("data/Toreadicus_PEL_imp.rds")
 
 # Total captures and recaptures
 length(Toreadicus.data$svl)
@@ -1757,7 +1757,7 @@ length(Toreadicus.data$svl)
 
 # SVL temporal variation plots
 
-(meses <- c(
+(months <- c(
   rep(
     c(
       "Feb",
@@ -1801,7 +1801,7 @@ plot(
   ylim = c(20, 100),
   xlab = "Months"
 )
-axis(1, 1:46, labels = meses)
+axis(1, 1:46, labels = months)
 axis(2)
 abline(h = 50, lty = 3)
 
@@ -1868,7 +1868,7 @@ cap.month <- function(x4, recap) {
 (cap.recap.months.To.PEL <- cap.month(Toreadicus.data, "N"))
 barplot(
   as.matrix(t(cap.recap.months.To.PEL[, -1])),
-  names.arg = meses,
+  names.arg = months,
   legend.text = T,
   ylim = c(0, 50),
   ylab = "Frequency",
@@ -1884,21 +1884,21 @@ barplot(
   main = expression(italic("Tropidurus oreadicus") - PEL)
 )
 
-arms.caps <- function(x4, narms) {
+traps.caps <- function(x4, ntraps) {
   tab.caps <- as.data.frame(table(x4$trap))
   names(tab.caps) <- c("trap", "captures") # Rename columns
-  armadilha.n <- data.frame(1:narms)
-  names(armadilha.n) <- c("trap")
-  arms.caps.sp <- merge(armadilha.n, tab.caps, all.x = T)
-  arms.caps.sp$captures[is.na(arms.caps.sp$captures)] <- 0
-  print(arms.caps.sp)
+  trap.n <- data.frame(1:ntraps)
+  names(trap.n) <- c("trap")
+  traps.caps.sp <- merge(trap.n, tab.caps, all.x = T)
+  traps.caps.sp$captures[is.na(traps.caps.sp$captures)] <- 0
+  print(traps.caps.sp)
 }
 
-arms.caps.To.PEL <- arms.caps(Toreadicus.data, narms = 25)
-summary(arms.caps.To.PEL)
+traps.caps.To.PEL <- traps.caps(Toreadicus.data, ntraps = 25)
+summary(traps.caps.To.PEL)
 
 barplot(
-  arms.caps.To.PEL$captures,
+  traps.caps.To.PEL$captures,
   names.arg = 1:25,
   col = c(
     rep("#2c7bb6", 6),
@@ -3569,7 +3569,7 @@ ggplot(out.inla.7.lambda.fits, aes(t, mode.lambda)) +
     inherit.aes = F
   ) +
   geom_line(aes(y = mode.lambda), size = 1.5) +
-  scale_x_continuous(breaks = c(1:46), labels = meses, expand = c(0, 0.6)) +
+  scale_x_continuous(breaks = c(1:46), labels = months, expand = c(0, 0.6)) +
   labs(x = NULL, y = "Abundance") +
   facet_wrap(~trap) +
   theme(
@@ -3592,7 +3592,7 @@ plot(
   ylab = "Captures and recaptures",
   ylim = c(0, 50)
 )
-axis(1, 1:46, labels = meses)
+axis(1, 1:46, labels = months)
 axis(2)
 
 pred_df_t <- pred_df %>%
@@ -3790,7 +3790,7 @@ ggplot(abund.df, aes(time, Nmean)) +
     inherit.aes = F
   ) +
   geom_line(aes(y = Nmean), size = 1.5) +
-  scale_x_continuous(breaks = c(1:46), labels = meses, expand = c(0, 0.6)) +
+  scale_x_continuous(breaks = c(1:46), labels = months, expand = c(0, 0.6)) +
   geom_ribbon(aes(ymin = Nlow2.5, ymax = Nhi97.5), alpha = .4) +
   geom_ribbon(aes(ymin = Nlow.25, ymax = Nhi75), alpha = .8) +
   # scale_y_log10()+
@@ -3837,7 +3837,7 @@ ggplot(abund.df, aes(time, Nmean)) +
     inherit.aes = F
   ) +
   geom_line(aes(y = Nmean), size = 1.5) +
-  scale_x_continuous(breaks = c(1:46), labels = meses, expand = c(0, 0.6)) +
+  scale_x_continuous(breaks = c(1:46), labels = months, expand = c(0, 0.6)) +
   scale_y_log10() +
   geom_ribbon(aes(ymin = Nlow2.5, ymax = Nhi97.5), alpha = .4) +
   geom_ribbon(aes(ymin = Nlow.25, ymax = Nhi75), alpha = .8) +
@@ -3921,7 +3921,7 @@ ggplot(p.df, aes(time, p)) +
     inherit.aes = F
   ) +
   geom_line(aes(y = p), size = 1.5) +
-  scale_x_continuous(breaks = c(1:46), labels = meses, expand = c(0, 0.6)) +
+  scale_x_continuous(breaks = c(1:46), labels = months, expand = c(0, 0.6)) +
   geom_line(aes(y = pmix), size = 1, col = "blue", linetype = 2) +
   labs(x = NULL, y = "Capture") +
   theme(
@@ -4297,7 +4297,7 @@ library(tidyterra)
 library(spData)
 
 # Read and plot points coordinates
-traps.pts <- read.table("Points_Traps.txt", h = T)
+traps.pts <- read.table("data/Points_Traps.txt", h = T)
 traps.pts
 
 (traps.pts.PEL <- subset(traps.pts, local == "PEL"))
@@ -4381,11 +4381,11 @@ inset.pel <- ggplot() +
   labs(x = "Longitude", y = "Latitude")
 
 # dowload tiles and compose raster (SpatRaster)
-bbox.arms <- st_bbox(traps.pts.PEL)
-bbox.arms[1:4] <- c(-48.215, -10.150, -48.200, -10.140)
+bbox.traps <- st_bbox(traps.pts.PEL)
+bbox.traps[1:4] <- c(-48.215, -10.150, -48.200, -10.140)
 
 imagery <- get_tiles(
-  bbox.arms,
+  bbox.traps,
   crop = TRUE,
   provider = "Esri.WorldImagery",
   zoom = 16
@@ -4393,7 +4393,7 @@ imagery <- get_tiles(
 plot(imagery)
 plot(st_geometry(traps.pts.PEL), col = "red", pch = 21, add = T)
 
-map.arms.pel <- ggplot() +
+map.traps.pel <- ggplot() +
   geom_spatraster_rgb(data = imagery, interpolate = F) +
   geom_sf(data = traps.pts.PEL, size = 2.5, color = "red") +
   geom_sf_text(
@@ -4431,7 +4431,7 @@ map.arms.pel <- ggplot() +
   labs(x = "Longitude", y = "Latitude")
 
 
-map.arms.pel
+map.traps.pel
 
 # Combining both maps
 print(inset.cerrado, vp = viewport(0.896, 0.773, width = 0.2, height = 0.2))
